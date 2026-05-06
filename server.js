@@ -1,18 +1,25 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// A simple route
-app.get('/', (req, res) => {
-  res.send('Hello from Railway! Your app is alive.');
+// Serve static files (like CSS, JS, images) from the current directory
+app.use(express.static(path.join(__dirname)));
+
+// --- API Routes ---
+app.post('/api/generate', (req, res) => {
+    // ... your QR generation logic ...
+    res.json({ success: true });
 });
 
-// Another test route
-app.get('/admin.html', (req, res) => {
-  res.send('<h1>Admin Panel Test</h1><p>Static routes are working.</p>');
+// --- Important: The Catch-All Route ---
+// This serves your admin.html for any request that isn't an API route
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Start the server, listening on all interfaces
+// Start the server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on port ${PORT}`);
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`👉 Open https://${process.env.RAILWAY_PUBLIC_DOMAIN || 'localhost'}`);
 });
