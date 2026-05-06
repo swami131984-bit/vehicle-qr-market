@@ -1,30 +1,34 @@
 const express = require('express');
+const path = require('path');
 const app = express();
-app.use(express.json());
-app.use(express.static(__dirname));
 
+app.use(express.json());
+app.use(express.static(__dirname));  // serves admin.html directly
+
+// Test route
+app.get('/test', (req, res) => {
+  res.send('✅ Server is alive!');
+});
+
+// API endpoints (keep your existing ones)
 let vehicles = [];
 let nextId = 1;
 
-// Generate QR
 app.post('/api/generate', (req, res) => {
   const { vehicleNumber, ownerName, phoneNumber } = req.body;
   if (!vehicleNumber || !ownerName || !phoneNumber) {
     return res.status(400).json({ error: 'Missing fields' });
   }
   const qrData = `VEHICLE_${vehicleNumber}_${Date.now()}`;
-  const qrUrl = `http://10.134.48.183:3000/vehicle/${qrData}`;
-  const vehicle = { id: nextId++, vehicleNumber, ownerName, phoneNumber, qrData, qrUrl, createdAt: new Date() };
-  vehicles.push(vehicle);
+  const qrUrl = `https://${req.get('host')}/vehicle/${qrData}`;
+  vehicles.push({ id: nextId++, vehicleNumber, ownerName, phoneNumber, qrData, qrUrl, createdAt: new Date() });
   res.json({ success: true, qrData, qrUrl });
 });
 
-// List all vehicles (for admin panel)
 app.get('/api/vehicles', (req, res) => {
   res.json(vehicles);
 });
 
-// Scan page
 app.get('/vehicle/:qrid', (req, res) => {
   const v = vehicles.find(v => v.qrData === req.params.qrid);
   if (!v) return res.status(404).send('Vehicle not found');
@@ -45,14 +49,18 @@ app.get('/vehicle/:qrid', (req, res) => {
   `);
 });
 
-// Admin page
-app.get('/admin.html', (req, res) => {
-  res.sendFile(__dirname + '/admin.html');
+// Serve admin.html at root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Serve admin.html at root as well
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/admin.html');
+// Also serve specific admin.html
+app.get('/admin.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`👉 Open https://${process.env.RAILWAY_PUBLIC_DOMAIN || 'localhost'}/admin.html`);
+});
