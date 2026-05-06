@@ -50,5 +50,9 @@ app.get('/admin.html', (req, res) => {
   res.sendFile(__dirname + '/admin.html');
 });
 
+// Serve admin.html at root as well
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/admin.html');
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Server on port ${PORT}`));
