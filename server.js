@@ -1,33 +1,35 @@
 const express = require('express');
-const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from the current directory
-app.use(express.static(__dirname));
+// Log every request
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
 
-// Explicit route for root
+// Root route – return plain text
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
+    res.send('Hello from Railway! Your QR app is live.');
 });
 
-// Explicit route for admin.html
+// Admin route – will serve your admin.html later
 app.get('/admin.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
+    res.send('<h1>Admin panel coming soon</h1>');
 });
 
-// Your existing API routes (placeholder – add your logic later)
-app.post('/api/generate', (req, res) => {
-  res.json({ success: true, message: 'QR generation will be added' });
+// Debug route
+app.get('/debug', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-// Fallback for any other route
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
-});
-
-// Listen on all interfaces
+// Start server on all interfaces
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`👉 Visit https://${process.env.RAILWAY_PUBLIC_DOMAIN || 'localhost'}`);
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`👉 Open https://${process.env.RAILWAY_PUBLIC_DOMAIN || 'localhost'}`);
+});
+
+// Global error handler
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
 });
